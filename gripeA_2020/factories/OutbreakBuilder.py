@@ -51,11 +51,14 @@ class OutbreakBuilder(Builder):
         # .
         outbreak_date = start
         outbreak_week = outbreak_date + timedelta(days = -outbreak_date.weekday())
+        cntBrote = 0
         for brote in listaBrotes:
             outbreak_date = brote["observation_date"]
             outbreak_week = outbreak_date + timedelta(days = -outbreak_date.weekday())
             brotes_por_semana[outbreak_week].append(brote)
-
+            cntBrote = cntBrote + 1
+            #print('nBrotes revisados: {}'.format(cntBrote))
+            #print(brote)
             # # USANDO LA ESTRUCTURA ORIGINAL DE NEO4J 1.0, cada nodo representa una zona de geohash y hay rutas entre estas zonas 
             # geohash_del_brote = brote['geohash'][0:4]
             # #Rutas del brote, puede que no haya ninguna que conecte con España

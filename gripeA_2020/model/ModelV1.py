@@ -1,5 +1,6 @@
 import math
 from datetime import datetime, timedelta
+from model.GeojsonGenerator import risk_to_alertLevel
 from numpy import log as ln
 import math
 
@@ -69,7 +70,7 @@ class ModelV1():
 
         semana = start.isocalendar()[1]-1
         #Calculamos la probabildad de migracion de la semana anterior
-        thisWeek, thisWeek_days, nextWeek, nextWeek_days = self.prob_week_days(start)
+        thisWeek, thisWeek_days, nextWeek, nextWeek_days = self.prob_week_days(start - timedelta(weeks=1))
 
         #Listas para pdf
         broteEspecie = dict()
@@ -120,10 +121,12 @@ class ModelV1():
 
 
                 totalMov += brote["nMov"]
-                if brote['casos'] != "":
+                if isinstance(brote['casos'],str) and brote['casos'].isnumeric():
+                    brote['casos']=int(brote['casos'])
+                if isinstance(brote['casos'],int):
                     casosTotales += brote['casos']
-
-
+                else:
+                    casosTotales += 1 # if there was an outbreak, let's assume at least 1 case 
 
             temperaturaM = "No data"
             # Calculamos temperaturaM de la semana actual, resultado de la formula -7.82 * logneperiano(temp) + 29.94
@@ -146,10 +149,11 @@ class ModelV1():
                 riesgo = int(nAlerta)
                 valor_riesgo = nAlerta
                 print("No hay temperatura en la semana {} para la comarca {}".format(semana, comarca))
-
+        
             alertas["alertas"].append({
                 "comarca_sg" : comarca, 
                 "risk" : riesgo,
+                "alertLevel": risk_to_alertLevel(valor_riesgo),
                 "valorRiesgo" : valor_riesgo, 
                 "temperatura": data['tMin'][comarca],  
                 "super": temperaturaM, 
@@ -158,3 +162,20 @@ class ModelV1():
             alertas["nBrotes"] += len(brote_por_comarca)
         
         return alertas
+
+    def risk_to_alertLevel(self, risk):
+        ret_level = 0
+        if risk <= 50: 
+            ret_level = 0
+        elif 50 < risk <= 100:
+            ret_level = 1
+        elif 100 < risk <= 150:
+            ret_level = 2
+        elif 150 < risk <= 300:
+            ret_level = 3
+        elif 300 < risk <= 2000:
+            ret_level = 4
+        elif 2000 < risk:
+            ret_level = 5
+
+        return ret_level

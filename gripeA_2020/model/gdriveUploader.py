@@ -89,7 +89,8 @@ class gDriveUploader:
 
         for file_id in existing_id:
             file1 = self.drive.CreateFile({"id": file_id})
-            file1.Trash()
+            #file1.Trash()
+            file1.Delete()
 
         return 0
 

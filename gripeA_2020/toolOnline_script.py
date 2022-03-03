@@ -16,8 +16,8 @@ from scripts.weather_mongo import cronTemp, prediction
 from scripts.geojson_github import from_geojson_to_github
 
 def main(argv):
+    ## NACHO: REMOVE COMMENTS AFTER UPDATE
     downloadOutbreaks()
-
     cronTemp()
     prediction()
 

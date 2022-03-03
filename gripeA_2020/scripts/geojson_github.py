@@ -28,7 +28,7 @@ def from_geojson_to_github():
         origin.pull()
         origin.push()
     except Exception as e:
-        print('Some error occured while pushing the code')
+        print('Some error occured while pulling/pushing the code')
         print(e)
         return 1
 

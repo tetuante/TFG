@@ -22,9 +22,11 @@ headers = {
         'cache-control': "no-cache"
 }
 
-bisiesto = ["2012", "2016","2020","2024"]
+# TODO Comprobar numericamente!!!
+bisiesto = ["2012", "2016","2020","2024", "2028"]
+now = datetime.now()
 fechaInicial = "2017-01-02"
-fechaFinal = "2021-05-02"
+fechaFinal = now.strftime("%Y-%m-%d")
 
 semanaFinal = datetime.strptime(fechaFinal, '%Y-%m-%d')
 nSemanaFinal = semanaFinal.isocalendar()[1]-1
@@ -434,25 +436,34 @@ def fillEmptyInfoCron(semana, anio):
     #Insercion en una coleccion Comarca - Historico (Juntando varias estaciones)
     cursor = estacion.find({})
 
+    print("Semana {} Anio{}".format(semana,anio))
     #Recorremos todas las estaciones
     for it in cursor:
         estaHis = list(historico.find({"idEstacion": it['indicativo']}))
-
+        # TODO 
         tMin = None if (estaHis == []) else estaHis[0]["historico(semanal)"][str(anio)][semana]
 
         #Si no hay Tmin en la estación principal buscamos el valor en el resto de estaciones
         if tMin == None:
+            #tMin = search(str(anio), it['estacionesAdd'], 1, it['comarca_sg'], semana)
             tMin = search(str(anio), it['estacionesAdd'], 1, it['comarca_sg'], semana)
         
         temperatura.update_one({"comarca_sg": it['comarca_sg']}, {"$set":{"historicoFinal.{}.{}".format(str(anio), semana): tMin}})
 
         
-
+# Actuliza la coleccion historico de MongoDB con los datos de AEMET de la semana anterior
 def cronTemp():
     #Lunes y domingo semana pasada
+    # TODO. Check it. Seguro que sale lunes y domingo.... o domingo y sabado?
     start = date.today() - timedelta(days = 1)
     start = start + timedelta(days = -date.today().weekday())
     end = start + timedelta(days = 6)
+
+    #NACHO try to include arbitrary dates
+    #start  = date(2022,1,1) 
+    #end  = date(2022,2,3) 
+    #FIN CAMBIO
+
     #Convert to datetime
     start = datetime.combine(start, datetime.min.time())
     end = datetime.combine(end, datetime.min.time())

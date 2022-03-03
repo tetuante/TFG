@@ -8,7 +8,7 @@ import os
 from os import remove
 import zipfile
 from datetime import datetime, timedelta, date
-
+import operator
 class ReportBuilder(Builder):
     uploader = gDriveUploader()
 
@@ -25,6 +25,7 @@ class ReportBuilder(Builder):
             os.system(converion)
         else:
             print(f"El fichero markdown {filepath} no existe")
+        # output = pypandoc.convert_file(filepath, 'pdf', outputfile=pdfpath, extra_args=['-H', 'markdown/header.sty', '--latex-engine', 'xelatex', '+RTS', '-K512M', '-RTS'])
         # pandoc -H markdown/header.sty +RTS -K512M -RTS -o markdown/InformeSemanal_28-12-2020.pdf markdown/InformeSemanal_28-12-2020.md
         return pdfpath
 
@@ -48,12 +49,14 @@ class ReportBuilder(Builder):
                 if startV > file_reportDate:
                     self.uploader.trash_file(file["title"], "alertas")
 
-    def load_csv(self, cabeceraAlertas, cabeceraBrotes, nuevasAlertas, nuevosBrotes, year):
+    def load_csv(self, cabeceraAlertas, cabeceraBrotes, nuevasAlertas, nuevosBrotes, year, month):
         #CSV generales
         alertasDrive = None
         brotesDrive = None
+        #Para crear fichero 2020-2021
+        if month >= 7: year += 1
         #CSV Alertas
-        alertasPath = "markdown/alertas{}.csv".format(year)
+        alertasPath = "markdown/alertasJulio{}Julio{}.csv".format(year-1,year)
         if not os.path.isfile(alertasPath): 
             alertasDrive = codecs.open(alertasPath, "wb+")  
             writer = csv.DictWriter(alertasDrive, fieldnames=cabeceraAlertas)         
@@ -64,10 +67,10 @@ class ReportBuilder(Builder):
 
         writer.writerows(nuevasAlertas)
         alertasDrive.close()
-        self.file_to_drive(alertasPath, "alertas{}.csv".format(year), "alertas")
+        self.file_to_drive(alertasPath, "alertasJulio{}Julio{}.csv".format(year-1,year), "alertas")
 
         #CSV Brotes
-        brotesPath = "markdown/brotes{}.csv".format(year)
+        brotesPath = "markdown/brotesJulio{}Julio{}.csv".format(year-1,year)
         if not os.path.isfile(brotesPath):
             brotesDrive = codecs.open(brotesPath, "wb+")
             writer = csv.DictWriter(brotesDrive, fieldnames=cabeceraBrotes)
@@ -78,31 +81,45 @@ class ReportBuilder(Builder):
 
         writer.writerows(nuevosBrotes)
         brotesDrive.close()
-        self.file_to_drive(brotesPath, "brotes{}.csv".format(year), "alertas")
+        self.file_to_drive(brotesPath, "brotesJulio{}Julio{}.csv".format(year-1,year), "alertas")
         
     def compress(self, year):
         #Se comprime y se guarda en /zips
-        #Solo zips de 2020 en adelante
-        if(year >=2020):
-            #Creamos el fichero zip
-            fileZip = zipfile.ZipFile("markdown/zips/{}.zip".format(year), "w")
 
-            #Recorremos la carpeta markdown y buscando los archivos de ese año y los guardamos en el zip 
-            for folder, subfolders, files in os.walk("markdown"):
-                for file in files:
+        #Creamos el fichero zip
+        fileZip = zipfile.ZipFile("markdown/zips/julio{}_julio{}.zip".format(year-1,year), "w")
+
+        #Recorremos la carpeta markdown y buscando los archivos de ese año y los guardamos en el zip 
+        for folder, subfolders, files in os.walk("markdown"):
+            for file in files:
+                comprime = False
+                if file.endswith(".pdf"):
+                    div = file.split(sep="_")
+                    div = div[1].split(sep=".")
+                    #Pasamos a datetime la fecha de file
+                    div = datetime.strptime(div[0], "%d-%m-%Y")
+                    #Limites para escoger ficheros de julio a julio
+                    start = datetime(year-1, 7, 1)
+                    end = datetime(year, 7, 1)
+                    if div >= start and div < end and file.endswith(".pdf"):
+                        comprime= True
+
+        
+                if comprime or file == "alertasJulio{}Julio{}.csv".format(year-1,year) or file == "brotesJulio{}Julio{}.csv".format(year-1,year):
+                    #Guardamos el fichero pdf en el zip
+                    fileZip.write(os.path.join(folder, file), file)
+                    #Lo borramos de la carpeta del servidork
+                    os.remove(os.path.join(folder, file))
                     
-                    if file.endswith("{}.pdf".format(year)) or file == "alertas{}.csv".format(year) or file == "brotes{}.csv".format(year):
-                        #Guardamos el fichero pdf en el zip
-                        fileZip.write(os.path.join(folder, file), file)
-                        #Lo borramos de la carpeta 
+                if file.endswith("{}.md".format(year)):
+                    try:
                         os.remove(os.path.join(folder, file))
-                        
-                    if file.endswith("{}.md".format(year)):
-                        os.remove(os.path.join(folder, file))
+                    except:
+                        continue
 
-            fileZip.close()
-            #Subimos comprimido a drive
-            self.file_to_drive("markdown/zips/{}.zip".format(year), "{}.zip".format(year), "alertas")    
+        fileZip.close()
+        #Subimos comprimido a drive
+        self.file_to_drive("markdown/zips/julio{}_julio{}.zip".format(year-1,year), "julio{}_julio{}.zip".format(year-1,year), "alertas")    
 
 
     def create(self, start, end, parameters):
@@ -117,8 +134,8 @@ class ReportBuilder(Builder):
         + "\n - *Periodo de*: " +   start.strftime('%d-%m-%Y') + " a " + end.strftime('%d-%m-%Y') + "\n")
 
         cabeceraTablaAlertas = ("\n\n## Tabla de alertas \n" 
-        + "| Nº | Fecha  | Comarca  | ID CG | Nº brotes | Nº mov. Riesgo | Grado alerta | Temperatura estimada  | Supervivencia del virus en días |\n"
-        + "|:-:|:-------:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|\n")
+        + "| Nº | Fecha  | N alerta | Comarca  | ID CG | Nº brotes | Nº mov. Riesgo | Grado alerta | Temperatura estimada  | Supervivencia del virus (días) |\n"
+        + "|:-:|:-------:|:----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-------:|\n")
 
         cabeceraGenericaTablaBrotesAlertas = "\n\n## Tablas de brotes de IAAP en Europa y su conexión a España a través de  movimientos de aves silvestres"
         
@@ -126,7 +143,7 @@ class ReportBuilder(Builder):
         +"|:---:|:---------:|:-------------------:|:----------------:|:---------------------:|:-------------------------:|:------------:|:-----------:|:-------------:|:------------------------:|:--------:|:--------:|:----------------:|:--------------:|:------------------:|\n" )
 
         #CSV
-        csvCabeceraAlertas = ["Nº","Fecha","Comarca","ID CG","Nº brotes","Nº mov. Riesgo","Grado alerta","Temperatura estimada","Supervivencia del virus en días"]
+        csvCabeceraAlertas = ["Nº","Fecha","Nivel de alerta","Comarca","ID CG","Nº brotes","Nº mov. Riesgo","Grado alerta","Temperatura estimada","Supervivencia del virus en días"]
         csvCabeceraBrotes = ["ID","Nº Alerta","Comarca","ID CG", "Grado alerta", "Fecha alerta", "Event ID", "Temperatura estimada", "Supervivencia del virus en días",
         "Reporting date","Observational date", "Country", "Location", "Latitud", "Longitud", "Ponderacion brote", "Riesgo brote", "An. Type","Species", "Cases", "Deaths","Especie movimiento", "Cód.  Especie", "Prob mov semanal"]
         
@@ -143,14 +160,18 @@ class ReportBuilder(Builder):
         #csv
         filasAlertasCsv = []
         filasBrotesCsv = []
-        for alerta in parameters['alertas']:
+        
+        #Ordenar de mayor a menor las alertas según el nivel de alerta ya cuantificado
+        listAlerts = sorted(parameters['alertas'], key=lambda k : k['alertLevel'], reverse=True) 
+
+        for alerta in listAlerts:
             #Sacar informacion de la comarca
             
             cursor = list(comarca_db.find({'comarca_sg': alerta['comarca_sg']}))
             comarca = cursor[0]
 
             alerta["temperatura"] = "No data" if alerta['temperatura'] == "No data" else round(alerta["temperatura"],2)
-            filasAlertas += ("|" +  str(nAlerta) + "|" + start.strftime('%d-%m-%Y') + "|" + comarca['com_sgsa_n'] + "|" + alerta['comarca_sg'] 
+            filasAlertas += ("|" +  str(nAlerta) + "|" + start.strftime('%d-%m-%Y') + "|"+ str(alerta["alertLevel"])+ "|" + comarca['com_sgsa_n'] + "|"+ comarca['com_sgsa_n'] + "|" + alerta['comarca_sg'] 
             + "|" + str(len(alerta['brotes'])) + "|" + str(alerta['movRiesgo']) + "|" + str(round(alerta["valorRiesgo"], 4))+ "|" + str(alerta["temperatura"]) + "|" 
             + str(round(alerta['super'],4)) + "|\n" )
 
@@ -159,7 +180,7 @@ class ReportBuilder(Builder):
             + "- *Localización comarca*: " +  comarca['com_sgsa_n'] + "\n")
 
             #Csv
-            filasAlertasCsv.append({"Nº": nAlerta ,"Fecha": start.strftime('%d-%m-%Y') ,"Comarca": comarca['com_sgsa_n'],"ID CG": alerta['comarca_sg'] ,"Nº brotes": len(alerta['brotes']),
+            filasAlertasCsv.append({"Nº": nAlerta ,"Fecha": start.strftime('%d-%m-%Y'), "Nivel de alerta": alerta["alertLevel"],"Comarca": comarca['com_sgsa_n'],"ID CG": alerta['comarca_sg'] ,"Nº brotes": len(alerta['brotes']),
             "Nº mov. Riesgo": alerta['movRiesgo'] ,"Grado alerta": round(alerta["valorRiesgo"], 4),"Temperatura estimada": alerta["temperatura"] ,"Supervivencia del virus en días": round(alerta['super'],4)})
             
             #Sacar informacion de brotes
@@ -217,14 +238,15 @@ class ReportBuilder(Builder):
         #Almacenar en un zip todos los ficheros de un año
         #Se guardaran en una carpeta
         
-        #Si el zip del año pasado no existe se crea y se sube al drive
-        if not os.path.isfile("markdown/zips/{}.zip".format(str(start.year-1))):
-            self.compress(start.year-1)
+
+        #Comprobamos que el zip no esté guardado y que sea Julio para poder comprimir
+        if not os.path.isfile("markdown/zips/julio{}_julio{}.zip".format(start.year-1,start.year)) and start.month == 7:
+            self.compress(start.year)
 
         #Eliminamos la primera semana de todo el recorrido
         self.update_drive(start)
         #Creamos csv brotes y subimos al drive
-        self.load_csv(csvCabeceraAlertas, csvCabeceraBrotes, filasAlertasCsv, filasBrotesCsv, start.year)
+        self.load_csv(csvCabeceraAlertas, csvCabeceraBrotes, filasAlertasCsv, filasBrotesCsv, start.year, start.month)
 
         # #Actualizacion
         informePath = "markdown/InformeSemanal_" + start.strftime("%d-%m-%Y") + ".md"

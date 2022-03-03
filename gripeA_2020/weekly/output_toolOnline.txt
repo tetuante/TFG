@@ -1,3 +1,4 @@
+Updating MongoDb with 65new elements
 Descripcion error: No hay datos que satisfagan esos criterios para la estacion 0002I
 Descripcion error: No hay datos que satisfagan esos criterios para la estacion 0016A
 Descripcion error: No hay datos que satisfagan esos criterios para la estacion 0076
@@ -48,9 +49,10 @@ Descripcion error: No hay datos que satisfagan esos criterios para la estacion 1
 Descripcion error: No hay datos que satisfagan esos criterios para la estacion 1690A
 Descripcion error: No hay datos que satisfagan esos criterios para la estacion 1690B
 Descripcion error: No hay datos que satisfagan esos criterios para la estacion 1700X
-Run model para semana 2021-06-14 00:00:00
+Semana 7 Anio2022
+Run model para semana 2022-02-28 00:00:00
 >>> Running model...
->>> Alertas total: 333
+>>> Alertas total: 402
 Guardando antiguos geojson
 Update alertas.geojson
 Update brotes.geojson

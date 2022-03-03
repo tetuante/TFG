@@ -186,7 +186,7 @@ class Controller:
             #Si está vacio añadimos todos los 3 primeros meses de brotes
             if len(brotes_por_semana) == 0:
                 brotes_por_semana = brotes_esta_semana
-            else: #Al diccionario con todos los brotes añadimos la de la última semana ya que el resto es igual
+            else: #Al diccioNARIO COn todos los brotes añadimos la de la última semana ya que el resto es igual
                 brotes_por_semana[current_week - timedelta(weeks=2)] = brotes_esta_semana[current_week - timedelta(weeks=2)]
 
             #Temperature
@@ -264,6 +264,12 @@ class Controller:
     def runOnlineTool(self, weeks=0):
         #Semana actual
         start = date.today() + timedelta(days = -date.today().weekday())
+
+        # NACHO. FIX ME LATER. Set starting date. MUST BE A MONDAY
+        #start = datetime(2022,1,17)
+        # NACHO END OF FIX
+
+        #start = datetime(2021, 7, 26) + timedelta(days = -date.today().weekday())
         # Desde "weeks" semanas atras hasta esta semana
         this_many_weeks = weeks
         start -= timedelta(weeks=this_many_weeks)
@@ -292,8 +298,8 @@ class Controller:
         lista_comarcas = self.dataFactory.createData("comarcas", None, None, None)
 
         #Probabilidad Migracion
-        file = "data/Datos_especies_nuevo.xlsx"
-        matrizEspecies = pd.read_excel(file, 'PROB MOV', skiprows=3, usecols='A:AY', header=0, index_col=2)
+        file = "data/Datos especies1.xlsx"
+        matrizEspecies = pd.read_excel(file, 'Prob_migracion', skiprows=3, usecols='A:AY', header=0, index_col=2)
 
         #DATA SENT TO MODEL
         data_to_model= dict()
@@ -310,7 +316,10 @@ class Controller:
         i = 0
         current_week = start
         current_week_end = current_week + timedelta(weeks=1)
-
+       
+        ## NACHO try 12 weeks
+        #this_many_weeks = 2 
+        ## END OF FIX
         while (i <= this_many_weeks):
             print("Run model para semana " + str(current_week))
             # 12 semanas = 84 dias = aprox. 3 meses
@@ -355,6 +364,11 @@ class Controller:
             i += 1
 
         
+        ## NACHO FIX ME LATER. NOW, DO NOT CHANGE json FILES
+        #print("FINISHED MODEL EXEC. PDF and CSV upload")
+        #return 0
+        ################ END FIX NACHO
+
         self.geojsonGen.store_old_geojson("/home/caballes/TFG/gripeA_2020/geojson/", "/home/caballes/TFG/gripeA_2020/old_geojson/")
         if weeks == 0:
             geojson_alerta = self.geojsonGen.update_alerta(alertas_list, lista_comarcas)
