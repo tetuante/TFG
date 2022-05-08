@@ -134,4 +134,6 @@ gripeA_2020/.vscode/
 # reports, data...
 gripeA_2020/markdown
 gripeA_2020/geojson
+gripeA_2020/settings.yaml
+gripeA_2020/pydrive
 
