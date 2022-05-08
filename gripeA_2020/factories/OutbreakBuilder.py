@@ -21,7 +21,8 @@ class OutbreakBuilder(Builder):
 
         listaBrotes = list(brotes_db.find({"observation_date" : {"$gte" : start, "$lt" : end}}))
     
-        tablaGeoComarca = json.load(open("data/tablaGeoComarca4.txt",  encoding='utf-8'))
+        # Now it is not required to load the geohash-comarca
+        #tablaGeoComarca = json.load(open("data/tablaGeoComarca4.txt",  encoding='utf-8'))
 
         comarca_brotes = dict()
         brotes_por_semana = dict()

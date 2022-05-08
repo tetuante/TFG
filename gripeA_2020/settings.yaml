@@ -2,8 +2,8 @@ client_config_backend: file
 client_config_file: pydrive/client_secrets.json
 
 client_config:
-    client_id: 953199992415-2tl8h28as14resslemkns1shfsu0ai5b.apps.googleusercontent.com
-    client_secret: I0xUw12qp15B2w5hrAmWiGtr
+    client_id: 953199992415-et29jffs2kkgk96obqg8823254ft0jfi.apps.googleusercontent.com
+    client_secret: mX2RtjOOUBIYlgBGese3V_Ag 
 
 save_credentials: True
 save_credentials_backend: file

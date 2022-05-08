@@ -8,7 +8,7 @@ class gDriveUploader:
         # GoogleAuth.DEFAULT_SETTINGS['client_config_file'] = folder + "client_secrets.json"
         
         self.gauth = GoogleAuth()
-
+        #self.gauth.LocalWebserverAuth()
         # # Try to load saved client credentials
         # self.gauth.LoadCredentialsFile(folder + "mycreds.txt")
         # if self.gauth.credentials is None:

@@ -5,7 +5,7 @@ from git import Git
 
 def from_geojson_to_github(): 
     print("Subida de ficheros a github")
-    copia_a_destino = "cp -r /home/caballes/TFG/gripeA_2020/geojson/. /home/caballes/applicacionWeb/GeoJSON/"
+    copia_a_destino = "cp -r /home/caballes/diflusion/gripeA_2020/geojson/. /home/caballes/applicacionWeb/GeoJSON/"
     os.system(copia_a_destino)
 
 

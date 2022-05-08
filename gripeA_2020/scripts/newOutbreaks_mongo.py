@@ -169,6 +169,7 @@ def downloadOutbreaks():
     #Descargamos el archivo 
     #url = "https://us-central1-fao-empres-re.cloudfunctions.net/getEventsInfluenzaAvian"
     #url = "https://europe-west1-fao-empres-re.cloudfunctions.net/getEventsInfluenzaAvian"
+    # OJO: esta URL solo vale para 2022 !!!!!!
     url = "https://europe-west1-fao-empres-re.cloudfunctions.net/getEventsInfluenzaAvian?start_date=2022-01-01&end_date=2022-12-31&serotype=all&diagnosis_status=confirmed&animal_type=all"
     #url = "https://empresi-shiny-app-dot-fao-empres-re.ew.r.appspot.com/session/b580a60d31e3a4ade4f0d3d5da8fbed4/download/overview-rawDataDownload?w="
     myFile = requests.get(url)
@@ -196,8 +197,8 @@ def downloadOutbreaks():
 
 
     # NACHO. Cambio para incluir fechas arbitrarias en BD
-    #firstWeek = date(2022,1,14)
-    #lastWeek = date(2022,2,5) 
+    #firstWeek = date(2022,3,7)
+    #lastWeek = date(2022,4,25) 
     ####  Fin CAMBIO
 
     #Indices para borrar el resto de filas
@@ -215,12 +216,18 @@ def downloadOutbreaks():
         dateOutbreak = df['report_date'][i]
 
         #NACHO: cambio limites temporales si se usan fechas arbitrarias
-        #if dateOutbreak <= lastWeek and dateOutbreak >= firstWeek:
+        # OJO: vamos al continue si el brote NOS intenresa (porque luego se hace drop)
+        #if dateOutbreak <= lastWeek or dateOutbreak >= firstWeek:
         if dateOutbreak >= lastWeek and dateOutbreak <= monday:
-            continue
+            #print('Consultando brote con id ' + str(df['oieid'][i])) 
+            # Check if it was already in db (if not, do not append it)
+            cnt = outbreaks.find({'oieid': df['oieid'][i].item()}).count()
+            if (cnt == 0):
+                continue
 
         dfAux.append(i)
 
+ 
     df = df.drop(dfAux,axis=0)
     df = webScraping(df)
 

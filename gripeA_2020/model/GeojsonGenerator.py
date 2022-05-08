@@ -285,7 +285,7 @@ class GeojsonGenerator:
                 feat_col_brote['features'].append(aux)
 
         return feat_col_brote
-
+    
     def update_outbreak(self, outbreaklist):
         print("Update brotes.geojson")
         if len(outbreaklist) == 0:
@@ -330,8 +330,9 @@ class GeojsonGenerator:
                             "observationDate": math.floor(it['observation_date'].timestamp() * 1000),
                             "city": it['city'],
                             "species": it['species'],
-                            "cases": "" if it['cases']== "" else int(it['cases']),
-                            #"deaths": "" if it['deaths']== "" else int(it['deaths']),
+                            #"cases": "" if it['cases']== "" else int(it['cases']),
+                            "cases": tryString2Int(it['cases']),
+			    #"deaths": "" if it['deaths']== "" else int(it['deaths']),
                             "serotipo": it['serotype'],
                             #"epiUnit": it['epiunit']
                         }
@@ -357,3 +358,19 @@ def risk_to_alertLevel(risk):
         ret_level = 5
 
     return ret_level
+
+def tryString2Int(s):
+    n = 0
+    if isinstance(s,int):
+        return s
+
+    if isinstance(s,str):
+        s.replace(chr(160),'')
+        s.replace(' ','')           
+        try:
+            n = int(s)
+        except:
+            n=1
+    return n
+
+

@@ -266,7 +266,7 @@ class Controller:
         start = date.today() + timedelta(days = -date.today().weekday())
 
         # NACHO. FIX ME LATER. Set starting date. MUST BE A MONDAY
-        #start = datetime(2022,1,17)
+        #start = datetime(2022,3,7)
         # NACHO END OF FIX
 
         #start = datetime(2021, 7, 26) + timedelta(days = -date.today().weekday())
@@ -317,8 +317,8 @@ class Controller:
         current_week = start
         current_week_end = current_week + timedelta(weeks=1)
        
-        ## NACHO try 12 weeks
-        #this_many_weeks = 2 
+        ## NACHO set  number of weeks for manual update
+        #this_many_weeks = 7
         ## END OF FIX
         while (i <= this_many_weeks):
             print("Run model para semana " + str(current_week))
@@ -369,7 +369,7 @@ class Controller:
         #return 0
         ################ END FIX NACHO
 
-        self.geojsonGen.store_old_geojson("/home/caballes/TFG/gripeA_2020/geojson/", "/home/caballes/TFG/gripeA_2020/old_geojson/")
+        self.geojsonGen.store_old_geojson("/home/caballes/diflusion/gripeA_2020/geojson/", "/home/caballes/diflusion/gripeA_2020/old_geojson/")
         if weeks == 0:
             geojson_alerta = self.geojsonGen.update_alerta(alertas_list, lista_comarcas)
             geojson_outbreak = self.geojsonGen.update_outbreak(brotes_por_semana)

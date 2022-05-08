@@ -460,8 +460,8 @@ def cronTemp():
     end = start + timedelta(days = 6)
 
     #NACHO try to include arbitrary dates
-    #start  = date(2022,1,1) 
-    #end  = date(2022,2,3) 
+    #start  = date(2022,3,7) 
+    #end  = date(2022,4,25) 
     #FIN CAMBIO
 
     #Convert to datetime
